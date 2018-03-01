@@ -72,7 +72,7 @@ void FitPlaneHelper::SVD_Solve(double *SA, double *SU, double *SS, double *SV, i
 	cvSVD(&A, &U, &S, &V, CV_SVD_U_T);
 }
 
-void FitPlaneHelper::getCrossCamera(CvPoint3D32f &output_point, float &a1, float &a2, float &a3, float &OP, CvPoint3D32f &cross_point_c, double squareSize)
+void FitPlaneHelper::getCrossCamera_1(CvPoint3D32f &output_point, float &a1, float &a2, float &a3, float &OP, CvPoint3D32f &cross_point_c, double squareSize)
 {
 	//获取交点P的摄像机坐标
 	if (a1 > 1.57)
@@ -104,7 +104,7 @@ void FitPlaneHelper::getCrossCamera(CvPoint3D32f &output_point, float &a1, float
 	output_point = temp_point;
 }
 
-void FitPlaneHelper::getCrossCamera2(CvPoint3D32f &output_point, float &a1, float &a2, float &a3, float &OP, CvPoint3D32f &cross_point_c, double d)
+void FitPlaneHelper::getCrossCamera(CvPoint3D32f &output_point, float &a1, float &a2, float &a3, float &OP, CvPoint3D32f &cross_point_c, double d)
 {
 	if (a1 > 1.57)
 	{
@@ -141,18 +141,7 @@ void FitPlaneHelper::getCrossCamera2(CvPoint3D32f &output_point, float &a1, floa
 void FitPlaneHelper::PlaneSolve(vector<CvPoint3D32f> &point_c, float *PlaneLight)
 {
 	//求解结构光平面：根据解奇异方程组求解光平面系数 AX+ BY+ CZ+ D=0 。
-	/*   point_c.clear();
-	CvPoint3D32f temp_point = cvPoint3D32f(-4,0,0);
-	point_c.push_back(temp_point);
-	temp_point = cvPoint3D32f(0,1,-2);
-	point_c.push_back(temp_point);
-	temp_point = cvPoint3D32f(-3,-2,1);
-	point_c.push_back(temp_point);
-	temp_point = cvPoint3D32f(-10,-3,4);
-	point_c.push_back(temp_point);//将每个点的摄像机坐标保存到vector中
-	temp_point = cvPoint3D32f(0,-2,0);
-	point_c.push_back(temp_point);
-	*/
+
 	int lenth = point_c.size();
 	cout << lenth <<endl;
 	if (lenth < 4)
@@ -234,4 +223,30 @@ void FitPlaneHelper::Solve_Z_With_Plane2(CvPoint3D32f &ray_point, CvPoint2D32f &
 	double y_c = D*y_v / (A*x_u + B*y_v + focus*C);
 	double z_c = -focus*D / (A*x_u + B*y_v + focus*C);
 	ray_point = cv::Point3d(x_c, y_c, z_c);
+}
+
+void FitPlaneHelper::PlaneTest(vector<CvPoint3D32f> &output_testline, float *LightPlane, cv::Mat &cameraIntrinsic, CvPoint2D32f testPoint)
+{
+	double a[16];
+	float A = LightPlane[0];
+	float B = LightPlane[1];
+	float C = LightPlane[2];
+	float D = LightPlane[3];
+	double fx = cameraIntrinsic.at<double>(0, 0);
+	double fy = cameraIntrinsic.at<double>(1, 1);
+	double cx = cameraIntrinsic.at<double>(0, 2);
+	double cy = cameraIntrinsic.at<double>(1, 2);
+	double u = testPoint.x;
+	double v = testPoint.y;
+	a[0] = A; a[1] = B; a[2] = C; a[3] = D;
+	a[4] = 0; a[5] = fy; a[6] = v - cy; a[7] = 0;
+	a[8] = fx; a[9] = 0; a[10] = cx - u; a[11] = 0;
+	a[12] = 0; a[13] = 0; a[14] = 0; a[15] = 0;
+	double U[16], S[16], V[16];
+	SVD_Solve(a, U, S, V, 4);
+	CvPoint3D32f temp;
+	temp.x = V[3] / V[15];   //系数A
+	temp.y = V[7] / V[15];   //系数B
+	temp.z = V[11] / V[15];  //系数C
+	output_testline.push_back(temp);
 }

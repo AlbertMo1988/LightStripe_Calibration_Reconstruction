@@ -220,7 +220,7 @@ void Calibration_LightPlane()
 			a2 = class_FitPlaneHelper.getAngle(image_points_buf_c[0], image_points_buf_c[2]);//Oc,Oa
 			a3 = class_FitPlaneHelper.getAngle(image_points_buf_c[0], cross_point_c);//Oc,Op
 			CvPoint3D32f cross_point_3d_c_temp;
-			class_FitPlaneHelper.getCrossCamera2(cross_point_3d_c_temp, a1, a2, a3, OP[j], cross_point_c, SquareSize*step_corner);
+			class_FitPlaneHelper.getCrossCamera(cross_point_3d_c_temp, a1, a2, a3, OP[j], cross_point_c, SquareSize*step_corner);
 			point_c.push_back(cross_point_3d_c_temp);
 		}
 	}
